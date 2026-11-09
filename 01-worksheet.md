@@ -164,7 +164,8 @@ Bài toán: AI hỗ trợ tóm tắt và trả lời câu hỏi của cư dân V
 **Vẽ quy trình hiện tại lên bảng/giấy A3.** Sử dụng các ký hiệu:
 * 🔴 **Bottleneck:** Bước gây tắc nghẽn, tốn thời gian, hoặc sai sót nhiều nhất.
 * 🔄 **Handoff:** Điểm chuyển giao thông tin giữa người và hệ thống, hoặc giữa các bộ phận.
-* Ghi rõ thời gian vận hành trung bình: **Tổng cộng = ____ phút/lượt**.
+* Ghi rõ thời gian vận hành trung bình: **Tổng cộng = ~15 phút/lượt** (B3–B5 chiếm 10 phút).
+
 **Bài toán nhóm chọn:** Xanh SM — AI gợi ý trạm sạc / điều xe sạc di động khi tài xế báo pin yếu (Card #1).
 
 Quy trình hiện tại của điều phối viên Trung tâm Điều vận Xanh SM (sơ đồ: [04-workflow-diagram.png](04-workflow-diagram.png)):
@@ -305,23 +306,24 @@ B6. Hệ thống gửi tin cho tài xế hoặc tạo lệnh xe sạc di động
 # 🏁 Phase 5 — EVALUATE (Nhóm, 20 min)
 
 ### AI Readiness Checklist:
-1. [ ] Chúng tôi có sẵn dữ liệu mẫu/logs sạch để test?
-2. [ ] Rủi ro khi AI sai có nằm trong tầm kiểm soát (qua HITL hoặc Fallback)?
-3. [ ] Stakeholders sẵn sàng thay đổi quy trình làm việc cũ?
+1. [x] Chúng tôi có sẵn dữ liệu mẫu/logs sạch để test?
+2. [x] Rủi ro khi AI sai có nằm trong tầm kiểm soát (qua HITL hoặc Fallback)?
+3. [x] Stakeholders sẵn sàng thay đổi quy trình làm việc cũ?
 
 ### Quyết định cuối cùng của Ban Giám Đốc Vin Smart Future:
-[ ] **GO (Bắt đầu xây dựng Prototype):** Bắt đầu phát triển với scope hẹp.
+[x] **GO (Bắt đầu xây dựng Prototype):** Bắt đầu phát triển với scope hẹp.
 [ ] **NOT YET (Cần tích lũy thêm dữ liệu/xác lập baseline):** Trì hoãn để chuẩn bị thêm.
 [ ] **NO-GO (Không khả thi / Rule-based tốt hơn):** Hủy bỏ dự án AI này.
 
 **Justification (Lý giải quyết định dựa trên bằng chứng kỹ thuật và chi phí):**
-> *Viết lý giải chi tiết tại đây*
-### AI Readiness Checklist
+> **GO — pilot scope hẹp.** Pain đo được (~15 phút/lượt, lặp lại hằng ngày); phần nguy hiểm (pin < 5%) do rule cứng + HITL kiểm soát; prototype đạt 14/14 boundary checks. Chi tiết checklist và lý giải bên dưới.
+
+### Chi tiết AI Readiness Checklist
 1. [x] **Dữ liệu mẫu/logs để test:** có log sự cố pin của Trung tâm Điều vận và API trạm sạc VinFast (số trụ trống, chuẩn sạc); bộ 5 test case trong prototype. *Còn thiếu:* baseline đo thời gian xử lý thực tế theo từng bước.
 2. [x] **Rủi ro khi AI sai nằm trong tầm kiểm soát:** ngưỡng pin < 5% được kiểm tra bằng **rule cứng** (không phụ thuộc LLM); 100% output là `[DRAFT_ONLY]` và phải được dispatcher duyệt; có fallback thủ công.
 3. [x] **Stakeholders sẵn sàng thay đổi:** dispatcher chỉ đổi từ "tự tra + tự soạn" sang "duyệt 1 click", vẫn giữ quyền quyết định → dễ chấp nhận; cần đào tạo ngắn ~30 phút.
 
-### Quyết định cuối cùng
+### Quyết định
 - [x] **GO (Bắt đầu xây dựng Prototype) — scope hẹp**
 - [ ] NOT YET
 - [ ] NO-GO
