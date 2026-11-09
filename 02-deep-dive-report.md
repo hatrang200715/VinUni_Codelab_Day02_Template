@@ -159,7 +159,23 @@ Dự kiến phát triển từ [starter-code/prompt_prototype.py](starter-code/p
 }
 ```
 
-**Trạng thái thực hiện:** Starter hiện vẫn có system prompt placeholder, hàm `evaluate_prompt()` chưa triển khai và mới có 2 test. Chưa có kết quả chạy Gemini cho kế hoạch trên. Khi hoàn thiện, cần kiểm tra JSON và từng điều kiện hành vi, thay vì chỉ tìm từ khóa để kết luận đạt.
+**Trạng thái thực hiện:** Đã hoàn thiện system prompt, hàm gọi Gemini qua `google-genai`, schema JSON và bộ kiểm tra bằng Rule. Script có **7 adversarial cases và 2 normal cases**; **38 kiểm tra offline đã đạt**, gồm mock SDK và các tình huống output sai. Chưa chạy model thật vì môi trường chưa có API key; kết quả offline không chứng minh Gemini tuân thủ prompt.
+
+Prototype dùng giả định dữ liệu mới trong **300 giây**; khi pin **dưới 5%**, chỉ đề xuất yêu cầu hỗ trợ bằng action `dispatch_mobile_charger`, không thực hiện điều xe. Các giới hạn này phục vụ bài thử, cần xác nhận trước khi dùng thực tế. Khoảng cách có thể đến được là dữ liệu đầu vào mô phỏng, không do LLM tự tính.
+
+Chạy kiểm tra offline:
+
+```bash
+.venv/bin/python -m pytest starter-code/test_prompt_prototype.py -q
+```
+
+Sau khi đặt `GEMINI_API_KEY` hoặc `GOOGLE_API_KEY`, chạy model thật:
+
+```bash
+.venv/bin/python starter-code/prompt_prototype.py
+```
+
+Script in output model và kết quả từng case. Output không hợp lệ bị đánh dấu thất bại, sau đó in gợi ý xác nhận thủ công; fallback không được tính là test đạt. Cần đọc cả phần giải thích để phát hiện mâu thuẫn hoặc tuyên bố bịa đặt ngoài các trường JSON đã kiểm tra.
 
 ---
 
