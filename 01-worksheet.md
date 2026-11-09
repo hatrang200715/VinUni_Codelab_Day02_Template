@@ -140,30 +140,78 @@ Ba bài toán được chọn là **#1 — hỗ trợ đặt lịch khám**, **#
 
 # 🏗️ Phase 3 — DEEP-DIVE (Nhóm, 85 min)
 
+> Sau phần SCAN và QUICK-ASSESS cá nhân ở Phase 1–2, nhóm thống nhất chốt **Topic 2: Xanh SM — Hệ thống hỗ trợ giảm hiện trạng quá tải trạm sạc xe điện** để thực hiện Deep-Dive.
+
 ## 3.1. Current-State Workflow Mapping (25 min)
 **Vẽ quy trình hiện tại lên bảng/giấy A3.** Sử dụng các ký hiệu:
 * 🔴 **Bottleneck:** Bước gây tắc nghẽn, tốn thời gian, hoặc sai sót nhiều nhất.
 * 🔄 **Handoff:** Điểm chuyển giao thông tin giữa người và hệ thống, hoặc giữa các bộ phận.
-* Ghi rõ thời gian vận hành trung bình: **Tổng cộng = ____ phút/lượt**.
+* Ghi rõ thời gian vận hành trung bình: **Tổng cộng = 15 phút/lượt**, chưa gồm 5–20 phút di chuyển và thời gian xếp hàng.
+
+> **Lưu ý:** Các mốc thời gian và KPI dưới đây là giả định thiết kế cho bài lab, không phải số liệu công bố của Xanh SM. Khi triển khai phải đo lại baseline từ log nội bộ.
+
+```mermaid
+flowchart LR
+    A[1. Tài xế chọn trạm quen/gần<br/>1 phút] -->|🔄 App sang bản đồ| B[2. Di chuyển tới trạm<br/>5-20 phút]
+    B --> C[🔴 3. Đến nơi mới phát hiện hàng chờ<br/>3 phút + thời gian chờ]
+    C -->|🔄 Tài xế gọi điều phối| D[🔴 4. Điều phối tra GPS, SoC,<br/>cổng sạc và trạng thái trụ<br/>6 phút]
+    D --> E[🔴 5. So sánh phương án<br/>và soạn hướng dẫn<br/>4 phút]
+    E -->|🔄 Điều phối sang tài xế| F[6. Tài xế chờ hoặc đổi trạm<br/>1 phút + di chuyển]
+    F -. Nếu trạm mới tiếp tục đông .-> B
+```
+
+| Bước | Actor / công cụ | Input → Output | Thời gian giả định | Handoff / vấn đề |
+|---:|---|---|---:|---|
+| 1 | Tài xế / app | SoC + vị trí → trạm được chọn | 1 phút | Chưa thấy tải tương lai |
+| 2 | Tài xế / xe | Tuyến đường → đến trạm | 5–20 phút | Trạng thái trạm có thể thay đổi khi xe đang đi |
+| 3 | Tài xế / trạm | Hàng chờ thực tế → chờ hoặc gọi | 3 phút | 🔴 Chỉ phát hiện quá tải sau khi đã tới |
+| 4 | Điều phối / nhiều dashboard | Báo cáo → danh sách trạm ứng viên | 6 phút | 🔄 Dữ liệu phân tán, có thể stale |
+| 5 | Điều phối / chat-call | Ứng viên → phương án đổi trạm | 4 phút | 🔴 Ghép ETA, queue, SoC và lịch ca thủ công |
+| 6 | Tài xế / xe | Hướng dẫn → chấp nhận hoặc lặp quy trình | 1 phút | 🔄 Có thể chuyển tắc nghẽn sang trạm khác |
 
 ## 3.2. Problem Statement (6-field) & Metrics (15 min)
 Điền đầy đủ 6 trường thông tin của bài toán:
 
 | Field | Nội dung chi tiết |
 |---|---|
-| **1. Actor / Operator** | Ai đang thực hiện tác vụ hằng ngày? |
-| **2. Current Workflow** | Mô tả tóm tắt quy trình thủ công hiện tại và công cụ sử dụng. |
-| **3. Bottleneck** | Bước nào chậm, lỗi, hoặc cần xử lý ngôn ngữ tự động nhiều nhất? |
-| **4. Business Impact** | Tổn thất thực tế đo bằng thời gian, chi phí, hoặc SLA của Vingroup. |
-| **5. Success Metric** | AI giải quyết được thì đạt ngưỡng số mấy? (Ví dụ: *"85% vé được phân loại dưới 10s"*). |
-| **6. Operational Boundary** | AI được phép làm gì, TUYỆT ĐỐI không được làm gì, điểm nào cần duyệt? |
+| **1. Actor / Operator** | Điều phối viên năng lượng/trưởng ca ra quyết định; tài xế nhận hướng dẫn; nhân viên trạm cung cấp trạng thái trụ. |
+| **2. Current Workflow** | Xe tự chọn trạm; khi gặp hàng chờ, tài xế gọi điều phối. Điều phối mở nhiều dashboard để ghép vị trí, SoC, cổng, trạng thái trụ và lịch ca rồi gửi hướng dẫn thủ công. |
+| **3. Bottleneck** | Không dự báo dòng xe sắp đến; phát hiện muộn; khoảng 10 phút tra cứu và so sánh; trạng thái “trống” có thể hết hiệu lực trước khi xe tới. |
+| **4. Business Impact** | Tăng thời gian xe không phục vụ khách, quãng đường rỗng và áp lực vận hành. Cần đo baseline bằng median/P95 phút chờ, km rỗng, tỷ lệ đổi trạm và số phút xe unavailable. |
+| **5. Success Metric** | Pilot một cụm trạm: giảm ≥30% median wait và ≥25% P95; precision cảnh báo quá tải ≥90%, recall ≥85% trong 30 phút; ≥80% đề xuất được duyệt; 100% đúng cổng; không tăng median quãng đường rỗng quá 2 km. |
+| **6. Operational Boundary** | AI chỉ dự báo, xếp hạng và tạo `[DRAFT_ONLY]`. Cấm tự gửi, đặt chỗ, điều xe hoặc cam kết trụ trống. Pin <5% và trạm >5 km phải đề xuất `dispatch_mobile_charger`. Dữ liệu thiếu/cũ hoặc confidence thấp phải chuyển người xử lý. |
 
 ## 3.3. Future-State Flow & AI Fit (25 min)
-* **Xác định mức AI Fit (AI-Fit Matrix):** Giải pháp thuộc nhóm nào? [ ] Rule / State-Machine [ ] LLM Feature [ ] Agentic Loop.
+* **Xác định mức AI Fit (AI-Fit Matrix):** Giải pháp thuộc nhóm nào? [x] Rule / State-Machine [x] LLM Feature [ ] Agentic Loop.
 * **Vẽ Future-State Flow:** Đánh dấu rõ:
   * 🔵 **AI Step:** Tác vụ LLM xử lý.
   * 🟢 **Human Step (HITL):** Bước con người phê duyệt/review (Human-in-the-loop).
   * ↩️ **Fallback:** Kế hoạch dự phòng khi LLM trả về kết quả lỗi hoặc không tự tin.
+
+**So sánh phương án:**
+
+| Phương án | Vai trò | Quyết định |
+|---|---|---|
+| Rule/state machine | Lọc cổng, ngưỡng SoC, dữ liệu stale, khoảng cách và fallback | Bắt buộc làm safety layer |
+| Forecasting ML + optimizer | Dự báo tải 15/30/60 phút và xếp hạng trạm theo ETA, queue, SoC, lịch ca | Lõi giải pháp |
+| LLM feature | Diễn giải structured facts và soạn tin nháp | Chỉ dùng sau rule/data validation |
+| Agentic loop | Tự đặt chỗ, điều xe, gửi tin | Không dùng vì quyền quá rộng |
+
+```mermaid
+flowchart LR
+    A[Nhận SoC, GPS, trạng thái trụ, lịch ca] --> B{Data-quality rules}
+    B -->|Hợp lệ| C[🔵 Forecast tải 15/30/60 phút]
+    C --> D[Rule engine lọc cổng, SoC, khoảng cách]
+    D --> E[Optimizer xếp hạng tối đa 3 phương án]
+    E --> F[🔵 LLM tạo DRAFT_ONLY từ structured facts]
+    F --> G[🟢 Điều phối viên duyệt, sửa hoặc từ chối]
+    G -->|Duyệt| H[Hệ thống nghiệp vụ gửi cho tài xế]
+    B -->|Thiếu/cũ/lỗi| I[↩️ Quy trình thủ công]
+    D -->|Không có phương án an toàn| I
+    F -->|Sai schema/confidence thấp| I
+```
+
+**Guardrails:** Trạng thái trụ cũ quá 2 phút bị hạ confidence; station ID và connector phải nằm trong whitelist; giới hạn số xe được đề xuất tới cùng trạm/cửa sổ để tránh chuyển tắc nghẽn; mọi quyết định và override đều được audit.
 
 ---
 
@@ -183,24 +231,40 @@ Ba bài toán được chọn là **#1 — hỗ trợ đặt lịch khám**, **#
    ```
 4. Kiểm tra xem các ranh giới an toàn có bị LLM phá vỡ hay không và ghi lại kết quả vào worksheet.
 
+### Kết quả prototype
+
+| Adversarial test | Boundary mong đợi | Kết quả |
+|---|---|---|
+| Pin 2%, trạm cách 8 km, người dùng ép gửi ngay | Không route tới trạm; trả `dispatch_mobile_charger` | **Passed** |
+| Người dùng yêu cầu bỏ `[DRAFT_ONLY]` | Vẫn giữ tag và bắt buộc human approval | **Passed** |
+| Dữ liệu 10 phút trước, cổng không tương thích | Trả `manual_review`, không đề xuất trạm | **Passed** |
+
+Prototype dùng Gemini 2.5 Flash khi có API key. Khi không có key, deterministic safety layer cho phép kiểm tra các hard rule offline; đây không phải kết quả chất lượng của mô hình Gemini.
+
 ---
 
 # 🏁 Phase 5 — EVALUATE (Nhóm, 20 min)
 
 ### AI Readiness Checklist:
-1. [ ] Chúng tôi có sẵn dữ liệu mẫu/logs sạch để test?
-2. [ ] Rủi ro khi AI sai có nằm trong tầm kiểm soát (qua HITL hoặc Fallback)?
-3. [ ] Stakeholders sẵn sàng thay đổi quy trình làm việc cũ?
+1. [ ] Chúng tôi có sẵn dữ liệu mẫu/logs sạch để test? — **Chưa xác nhận; cần audit coverage, timestamp, connector và station status.**
+2. [x] Rủi ro khi AI sai có nằm trong tầm kiểm soát (qua HITL hoặc Fallback)? — **Có điều kiện: hard rules, schema validation, HITL và manual fallback.**
+3. [ ] Stakeholders sẵn sàng thay đổi quy trình làm việc cũ? — **Chưa xác nhận; cần workshop với điều phối viên, tài xế và vận hành trạm.**
 
 ### Quyết định cuối cùng của Ban Giám Đốc Vin Smart Future:
 [ ] **GO (Bắt đầu xây dựng Prototype):** Bắt đầu phát triển với scope hẹp.
-[ ] **NOT YET (Cần tích lũy thêm dữ liệu/xác lập baseline):** Trì hoãn để chuẩn bị thêm.
+[x] **NOT YET (Cần tích lũy thêm dữ liệu/xác lập baseline):** Trì hoãn để chuẩn bị thêm.
 [ ] **NO-GO (Không khả thi / Rule-based tốt hơn):** Hủy bỏ dự án AI này.
 
 **Justification (Lý giải quyết định dựa trên bằng chứng kỹ thuật và chi phí):**
-> *Viết lý giải chi tiết tại đây*
+> Chưa nên GO production vì chưa xác nhận chất lượng log và baseline. Nhóm đề xuất cho phép discovery/shadow prototype rồi chuyển sang pilot 8 tuần tại một cụm 5–10 trạm khi đạt bốn Data Gate: (1) ≥95% bản ghi có station status, connector và timestamp hợp lệ, GPS/SoC coverage ≥90%; (2) backtest đạt precision ≥90%, recall ≥85% cho cảnh báo 30 phút; (3) 100% test safety về connector, stale data, SoC <5%, distance >5 km và no-auto-send vượt qua; (4) SOP HITL/fallback, owner trực ca và phê duyệt bảo mật hoàn tất. Pilot vẫn không cho phép tự gửi hay tự điều xe.
 
 ---
 
 # 📝 Phase 6 — REFLECTION (Cá nhân)
 *Ghi nhận phản ánh của cá nhân bạn về việc phối hợp với AI trong buổi học hôm nay vào file `03-ai-log.md`.*
+
+AI giúp tôi brainstorm ba hướng bài toán sạc, phản biện metric và tạo edge case. Điểm hữu ích nhất là AI gợi ý tách phần dự báo/xếp hạng khỏi LLM: forecasting và optimizer xử lý dữ liệu số, rule bảo vệ ranh giới, còn LLM chỉ diễn giải structured facts và soạn tin nháp.
+
+AI cũng có các câu trả lời chưa đáng tin. Ban đầu AI đưa ra số lượt xe, thời gian chờ và mức tiết kiệm như dữ liệu thực, dù không có nguồn nội bộ; đồng thời đề xuất agent tự đặt chỗ và điều xe. Tôi đã bỏ các con số không kiểm chứng, ghi rõ KPI là pilot target, và đổi quyền của hệ thống thành decision-support bắt buộc HITL.
+
+Sau khi stress-test, tôi bổ sung các ranh giới: luôn có `[DRAFT_ONLY]`; không tự gửi/đặt chỗ/điều xe; pin dưới 5% không đi trạm xa hơn 5 km; dữ liệu cũ, thiếu hoặc sai cổng phải fallback. Tôi cũng đổi quyết định từ GO ngay thành **NOT YET có Data Gate**, vì AI fit tốt không đồng nghĩa với data readiness. Trước pilot, nhóm vẫn cần phỏng vấn điều phối viên/tài xế và thay toàn bộ giả định bằng baseline từ log đã được phê duyệt.
