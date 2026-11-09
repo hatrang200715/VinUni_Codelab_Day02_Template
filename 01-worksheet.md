@@ -1,4 +1,4 @@
-# Lab 02 — Worksheet: AI Product Scoping (Vin Smart Future)
+﻿# Lab 02 — Worksheet: AI Product Scoping (Vin Smart Future)
 
 ---
 
@@ -63,11 +63,11 @@ Hãy sử dụng **4 Lenses** dưới đây để quét qua hoạt động vận
 ### 📝 List bài toán của tôi:
 | # | Subsidiary (VinFast/Xanh SM...) | Lens | Mô tả ngắn bài toán |
 |---|----------------------------------|------|---------------------|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
+| 1 | Vinmec| Time-consuming, AI-upgrade |Hỗ trợ xử lý yêu cầu đặt lịch khám: Nhân viên tiếp nhận phải đọc yêu cầu, xác định chuyên khoa phù hợp và kiểm tra lịch trống. AI hỗ trợ phân loại nhu cầu và đề xuất chuyên khoa để nhân viên xác nhận. |
+| 2 | Vinmec | Lặp lại| Phân loại phản hồi và khiếu nại của bệnh nhân: Nhân viên CSKH phải đọc thủ công các phản ánh về thời gian chờ, thái độ phục vụ, chi phí và quy trình khám. AI tự động phân loại, tóm tắt và gợi ý mức độ ưu tiên xử lý. |
+| 3 | Vinmec | Stakeholder Pain | Trợ lý AI hướng dẫn thủ tục khám bệnh: Bệnh nhân thường phải hỏi nhân viên về quy trình đăng ký, giấy tờ, thanh toán và bảo hiểm. AI chatbot trả lời theo quy trình đã được phê duyệt và hướng dẫn bệnh nhân đến đúng bộ phận. |
+| 4 | Vinhomes | Stakeholder Pain | AI hỗ trợ xử lý sự cố kỹ thuật: Khi nhận thông tin hỏng thang máy, điều hòa, điện nước hoặc thiết bị công cộng, nhân viên cần kiểm tra mô tả, xác định loại sự cố, đối chiếu lịch sử và phân công kỹ thuật viên. |
+| 5 | Vinhomes | Stakeholder Pain | Dự báo tình trạng quá tải thang máy: Ban quản lý phải theo dõi tình trạng sử dụng thang máy vào giờ cao điểm và xử lý các phản ánh về thời gian chờ. AI dự báo lưu lượng theo khung giờ và đề xuất phương án điều phối. |
 
 ---
 
