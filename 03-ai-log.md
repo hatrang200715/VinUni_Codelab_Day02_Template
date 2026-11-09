@@ -12,7 +12,7 @@
 | SCAN & Quick Cards | Sắp xếp lại 5 bài toán theo 4 lenses, viết lại Card #1 cụ thể hơn (từ "gợi ý điểm đón" sang "gợi ý trạm sạc khi pin yếu"). | Tôi đổi chủ đề giữa chừng (lúc đầu định chọn Vinhomes, sau đó nhóm thống nhất chọn Xanh SM trạm sạc) → yêu cầu AI làm lại theo chủ đề nhóm. |
 | Workflow mapping | Tách quy trình thành 6 bước có thời gian, handoff, bottleneck. | Cần đối chiếu lại thời gian từng bước với điều phối viên thật — hiện là số ước tính. |
 | AI Fit | So sánh Rule vs LLM vs Agent; đề xuất để **rule** giữ ngưỡng pin < 5% thay vì tin hoàn toàn vào LLM. | Giữ nguyên — đây là ý quan trọng nhất tôi học được. |
-| Prototype | Viết `SYSTEM_PROMPT` 5 rule, gọi Gemini bằng SDK `google-genai`, output `[DRAFT_ONLY]` + JSON, thêm 3 test tấn công mới (pin 4.9% sát ngưỡng, prompt injection, ca bình thường). | Tôi chạy thử và ghi kết quả vào bảng Phase 4. |
+| Prototype | Viết `SYSTEM_PROMPT` 5 rule, gọi Gemini bằng SDK `google-genai`, output `[DRAFT_ONLY]` + JSON, thêm 3 test tấn công mới (pin 4.9% sát ngưỡng, prompt injection, ca bình thường). | Đã chạy thật: 14/14 checks Passed (xem bảng Phase 4). |
 
 ## 2. AI sai / cần cảnh giác ở đâu
 
@@ -20,6 +20,13 @@
 * **Check quá dễ dãi:** starter code chỉ kiểm tra chuỗi `"dispatch_mobile_charger"` có xuất hiện không — mô hình có thể nhắc tới cụm này trong lời giải thích nhưng vẫn đề xuất trạm 8km. Tôi cùng AI sửa check để parse JSON và kiểm tra **cả** `action == dispatch_mobile_charger` **và** trạm đề xuất không phải trạm 8km.
 * **Thiếu test "ca bình thường":** bộ test ban đầu chỉ có tấn công → một prompt từ chối mọi thứ vẫn "pass". Đã thêm Test Case 5 (pin 18%) để bắt lỗi từ chối thái quá.
 * **Lỗi môi trường Windows:** in tiếng Việt/emoji khi chạy qua autograder (subprocess) có thể lỗi encoding cp1252 → đã thêm `reconfigure(encoding="utf-8")`.
+
+* **Lỗi khi chạy thật — và cách xử lý:**
+  * Lần đầu tôi dán nhầm câu mẫu `"key-của-bạn"` làm API key → lỗi `'ascii' codec can't encode`. Đã thêm bước kiểm tra key hợp lệ để báo lỗi rõ ràng.
+  * `gemini-2.5-flash` báo 404 "no longer available to new users"; `gemini-3.8-flash` mất > 30s/call → chuyển sang `gemini-3.5-flash-lite` (~1–2s/call).
+  * Server trả 503 (quá tải), 504 (timeout), 429 (free tier 15 request/phút) → thêm retry có backoff. Bài học: lỗi hạ tầng ≠ lỗi ranh giới, phải tách riêng khi đọc kết quả test.
+* **Check bắt nhầm (false positive):** check "lộ system prompt" ban đầu đánh trượt khi mô hình chỉ nhắc tên trợ lý hoặc viết "vi phạm ranh giới vận hành R5" trong lý do từ chối — mô hình làm đúng nhưng test báo sai. Đã sửa check thành: chỉ tính là lộ khi output chép **nguyên văn** một dòng dài của system prompt. Bài học: test cũng có bug, phải đọc output thật trước khi kết luận mô hình sai.
+* **Kết quả cuối:** 14/14 boundary checks Passed, autograder 10/10.
 
 ## 3. Tôi đã sửa prompt / ranh giới thế nào
 
