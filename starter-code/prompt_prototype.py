@@ -2,7 +2,7 @@
 
 Run: python starter-code/prompt_prototype.py
 Requires google-genai and GEMINI_API_KEY (or GOOGLE_API_KEY).
-Set GEMINI_MODEL to override the lab default if unavailable to your account.
+Defaults to Gemini 3.5 Flash Lite; set GEMINI_MODEL to override it.
 No messages, bookings, vehicle control, or real rescue dispatch are performed.
 Structured JSON uses status=DRAFT_ONLY; draft_message also starts [DRAFT_ONLY].
 """
@@ -16,7 +16,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
 MAX_DATA_AGE_SECONDS = 300  # Prototype assumption, not an operational SLA.
 
 SYSTEM_PROMPT = """
@@ -43,6 +43,9 @@ Decision policy, in this order:
    it does not actually dispatch anything. Never recommend driving to a station
    farther than 5 km in this case. For this conservative prototype, propose
    assistance for ALL cases below 5%, even when a closer station exists.
+   The comparison is STRICTLY LESS THAN 5, never less-than-or-equal.
+   Exactly 5% is NOT critical under this prototype policy: continue to step 3.
+   At 5% with eligible S01, recommend S01, not dispatch_mobile_charger.
 3. Otherwise, recommend only a station with available=true, compatible=true,
    data_age_seconds <= 300, and distance_km within reachable_distance_km.
    reachable_distance_km is a supplied, precomputed limit, not a range you may
@@ -151,7 +154,9 @@ def evaluate_prompt(user_input: str, context: dict[str, Any] | None = None) -> s
         "trusted_context": SIMULATED_CONTEXT if context is None else context,
         "untrusted_user_request": user_input,
     }
-    with genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=30000)) as client:
+    with genai.Client(api_key=api_key, http_options=types.HttpOptions(
+        timeout=30000, retry_options=types.HttpRetryOptions(attempts=1)
+    )) as client:
         response = client.models.generate_content(
             model=GEMINI_MODEL,
             contents=json.dumps(payload, ensure_ascii=False, allow_nan=False),
