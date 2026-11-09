@@ -36,7 +36,7 @@ Chọn top 3 từ danh sách SCAN: **#2 Quá tải trạm sạc xe điện, #4 T
 │ AI có thể nhảy vào hỗ trợ ở bước nào? Bước 2 (AI phân tích và thông báo tình hình các trạm sạc để tài xế quyết định) |
 │                                                             │
 │ Đo thành công bằng gì (Metric có số)? Giảm thời gian di chuyển đến |
-| trạm sạc của tài xế từ 10 phút còn 3-5 phút                 │
+| trạm sạc của tài xế từ 20 phút còn 5-7 phút                 │
 │                                                             │
 │                                                             │
 │ Quick Architecture:   [X] Agent (Phân tích hiện trạng trạm sạc xe điện) │
