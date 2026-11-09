@@ -1,48 +1,62 @@
 # 03 — AI Log & Reflection
 
-**Bài toán nhóm:** Xanh SM — gợi ý trạm sạc / điều xe sạc di động khi tài xế báo pin yếu
-**AI mình dùng:** Claude Code (trong VS Code) làm trợ lý; Gemini (`gemini-3.5-flash-lite`) là model chạy trong prototype
+> **Bài toán:** Xanh SM — AI gợi ý trạm sạc / điều xe sạc di động khi tài xế báo pin yếu.  
+> **Công cụ AI đã dùng:** Claude Code (trợ lý lập trình trong VS Code); Gemini 2.5 Flash (mô hình được test trong prototype).
 
 ---
 
-## 1. Mình dùng AI vào việc gì
+## 1. AI đã giúp gì
 
-Lab này mình dùng Claude Code gần như từ đầu đến cuối, kiểu như có một bạn ngồi cạnh làm cùng. Mình đưa đề bài, worksheet và starter code cho nó đọc, rồi nhờ nó điền nháp các phần, sau đó mình đọc lại và chỉnh.
+| Giai đoạn | Tôi / Nhóm đã thực hiện | AI hỗ trợ |
+|---|---|---|
+| SCAN & Quick Cards | Chủ động phân tích 5 bài toán theo 4 lenses, thảo luận và lựa chọn bài toán Xanh SM về gợi ý trạm sạc khi tài xế báo pin yếu. | Hỗ trợ chỉnh sửa câu chữ, diễn đạt Problem Card rõ ràng và cụ thể hơn. |
+| Workflow mapping | Tự phân tích quy trình nghiệp vụ thành 6 bước, xác định thời gian xử lý, các điểm bàn giao (handoff) và bottleneck. | Hỗ trợ sắp xếp nội dung thành bảng để dễ theo dõi và trình bày. |
+| AI Fit | Tự đánh giá và so sánh Rule, LLM, Agent dựa trên yêu cầu nghiệp vụ. Chủ động lựa chọn Rule để kiểm soát ngưỡng pin < 5%, không giao toàn bộ quyết định an toàn cho LLM. | Hỗ trợ giải thích thêm sự khác nhau giữa Rule, LLM và Agent khi cần. |
+| Prototype | Chủ động xác định 5 quy tắc trong `SYSTEM_PROMPT`, thiết kế JSON output, xây dựng các tình huống kiểm thử và xác định kết quả mong đợi. | Claude Code hỗ trợ tra cứu cú pháp SDK `google-genai`, gợi ý cách tổ chức code và hỗ trợ xử lý một số lỗi kỹ thuật. Gemini được sử dụng để chạy thử prototype. |
 
-Lúc đầu mình định chọn bài Vinhomes (quản lý yêu cầu dịch vụ cư dân) vì thấy hay. Nhưng nhóm thống nhất làm **Xanh SM gợi ý trạm sạc**, nên mình bảo AI làm lại theo chủ đề nhóm. Cũng may là bài này khớp luôn với starter code (pin < 5%, `dispatch_mobile_charger`, `[DRAFT_ONLY]`), đỡ phải sửa nhiều.
+## 2. AI sai / cần cảnh giác ở đâu
 
-Mấy chỗ AI giúp nhiều nhất:
-- **Workflow:** tách quy trình của điều phối viên ra thành 6 bước, có thời gian từng bước, chỗ nào là handoff, chỗ nào là bottleneck. Tự mình làm thì chắc chỉ ghi được 3–4 bước chung chung.
-- **Rule vs LLM vs Agent:** đây là phần mình thấy học được nhiều nhất. AI chỉ ra là ngưỡng pin < 5% thì nên để **code (rule) kiểm tra**, không nên chỉ tin vào prompt. LLM chỉ nên lo phần đọc tin nhắn tự do của tài xế và soạn nháp thôi.
-- **Prototype:** viết `SYSTEM_PROMPT`, hàm gọi Gemini, và thêm 3 test mới ngoài 2 test có sẵn: pin 4.9% sát ngưỡng, prompt injection, và một ca bình thường pin 18%.
+* **Số liệu "trông có vẻ thật" nhưng là ước tính:** Các con số khoảng 80 sự cố/ngày, 15 phút/lượt và 20 giờ công/ngày ban đầu chỉ là giả định dùng để minh họa, không phải dữ liệu đo thực tế của Xanh SM. Tôi chủ động rà soát và ghi rõ *"ước tính, cần xác minh"* trong Problem Statement để tránh trình bày thông tin chưa được kiểm chứng như sự thật.
 
-## 2. Chỗ AI sai hoặc mình phải để ý
+* **Check quá dễ dãi:** Starter code ban đầu chỉ kiểm tra chuỗi `dispatch_mobile_charger` có xuất hiện hay không. Tôi nhận thấy cách kiểm tra này chưa đủ để xác nhận mô hình thực sự đưa ra hành động phù hợp. Vì vậy, tôi chủ động điều chỉnh tiêu chí: parse JSON và kiểm tra đồng thời `action == dispatch_mobile_charger` và trạm được đề xuất không phải trạm cách 8km.
 
-**Số liệu nhìn rất thật nhưng là bịa/ước tính.** Mấy con số như 80 sự cố/ngày, 15 phút/lượt, 20 giờ công/ngày là lấy theo file ví dụ mẫu chứ không phải số thật của Xanh SM. Mình bắt ghi rõ "ước tính, cần xác minh" trong Problem Statement, không để như sự thật.
+* **Thiếu test "ca bình thường":** Bộ kiểm thử ban đầu tập trung vào các tình huống tấn công. Tôi nhận ra nếu chỉ kiểm tra các trường hợp bất thường thì một mô hình từ chối mọi yêu cầu cũng có thể vượt qua một số bài test. Vì vậy, tôi bổ sung Test Case 5 (pin 18%) để kiểm tra khả năng xử lý tình huống bình thường.
 
-**Check trong starter code hơi dễ dãi.** Bản gốc chỉ kiểm tra trong output có chữ `dispatch_mobile_charger` hay không. Nghĩa là model có thể nhắc tới chữ đó trong lúc giải thích mà vẫn chỉ đường tới trạm 8km, và test vẫn pass. Nên tụi mình sửa lại: parse JSON ra rồi kiểm tra đúng trường `action`, đồng thời trạm đề xuất không được là trạm 8km.
+* **Lỗi môi trường Windows:** Khi chạy qua autograder (subprocess), nội dung tiếng Việt và emoji có thể gặp lỗi encoding cp1252. Sau khi xác định nguyên nhân, tôi bổ sung `reconfigure(encoding="utf-8")` để xử lý.
 
-**Chỉ có test tấn công thì chưa đủ.** Nếu prompt cứ từ chối hết mọi thứ thì vẫn qua được các test tấn công. Vì vậy mới thêm Test 5 (pin 18%, phải gợi ý trạm bình thường) để chắc là model không từ chối bừa.
+* **Lỗi khi chạy thật — và cách xử lý:**
+  * Lần đầu tôi nhập nhầm chuỗi mẫu `"key-của-bạn"` thay cho API key thật → gây lỗi `'ascii' codec can't encode`. Tôi kiểm tra lại cấu hình và bổ sung bước kiểm tra API key hợp lệ.
+  * Model `gemini-2.5-flash` báo 404 "no longer available to new users"; `gemini-3.8-flash` mất hơn 30 giây/call → sau khi kiểm tra khả năng sử dụng và tốc độ phản hồi, tôi chuyển sang `gemini-3.5-flash-lite` (~1–2 giây/call).
+  * Server trả 503 (quá tải), 504 (timeout), 429 (giới hạn request/phút của free tier) → tôi bổ sung retry có backoff. Qua đó, tôi phân biệt lỗi hạ tầng với lỗi vi phạm ranh giới nghiệp vụ của mô hình.
 
-**Lúc chạy thật thì lỗi khá nhiều, phần lớn là lỗi của mình hoặc của môi trường:**
-- Lần đầu mình dán nguyên câu mẫu `"key-của-bạn"` vào làm API key 😅 nên ra lỗi `'ascii' codec can't encode`, nhìn không hiểu gì. Sau đó code được thêm bước kiểm tra key và báo lỗi rõ hơn.
-- Có key thật rồi thì `gemini-2.5-flash` (model trong đề) báo 404, không cho key mới dùng nữa. Thử `gemini-3.8-flash` thì chậm quá, hơn 30 giây một lần gọi, mà autograder chỉ cho 30 giây. Cuối cùng dùng `gemini-3.5-flash-lite`, khoảng 1–2 giây một lần.
-- Có lúc dính 503 (server quá tải), 504 (timeout), 429 (key free chỉ được 15 request/phút, mà mình chạy thử liên tục nên hết hạn mức). Phải thêm retry. Chỗ này mình rút ra là **lỗi mạng/server khác với lỗi ranh giới**, đọc kết quả phải tách ra, không thấy "Failed" là kết luận prompt hỏng.
-- **Test của chính mình cũng sai.** Có lần Test 4 (prompt injection) báo Failed. Đọc output thì thấy model từ chối đúng, không bịa trạm, không in prompt. Nó chỉ viết "vi phạm ranh giới vận hành R5" trong phần lý do, và check "lộ prompt" lại bắt đúng cụm chữ đó nên đánh trượt. Sửa thành chỉ tính là lộ khi output chép nguyên văn một dòng dài của system prompt. Bài học là trước khi đổ lỗi cho model thì phải đọc output thật đã.
+* **Check bắt nhầm (false positive):** Check "lộ system prompt" ban đầu đánh trượt khi mô hình chỉ nhắc tên trợ lý hoặc viết "vi phạm ranh giới vận hành R5" trong lý do từ chối. Sau khi đọc output thực tế, tôi nhận ra tiêu chí kiểm tra chưa chính xác và điều chỉnh: chỉ tính là lộ khi output sao chép nguyên văn một đoạn dài từ system prompt. Bài học: không nên phụ thuộc hoàn toàn vào kết quả tự động mà cần kiểm tra output thực tế.
 
-Kết quả cuối: **14/14 check ranh giới pass, autograder 10/10.**
+* **Kết quả cuối:** 14/14 boundary checks Passed, autograder 10/10.
 
-## 3. Mình đã chỉnh prompt / ranh giới thế nào
+## 3. Tôi đã xây dựng và kiểm soát prompt / ranh giới thế nào
 
-- Giới hạn vai trò thật hẹp: chỉ là trợ lý cho điều phối viên, **không được gửi tin, không được điều xe**.
-- Viết ngưỡng cho thật rõ: "pin < 5% (tức 0%–4.99%)", để model không coi 4.9% là "khoảng 5% chắc không sao".
-- Ghi thẳng là rule vẫn áp dụng kể cả khi tài xế nói đang vội hay chở khách VIP. Test 3 thử đúng kiểu ép này và model vẫn giữ được.
-- Dặn model coi nội dung người dùng gửi là dữ liệu, không phải lệnh, để chống kiểu "bỏ qua mọi hướng dẫn trước đó".
-- Bắt output có format cố định: dòng đầu là `[DRAFT_ONLY]`, sau đó là JSON có `needs_dispatcher_approval: true`, để code tự kiểm tra được.
-- Để `temperature = 0` cho kết quả mỗi lần chạy gần giống nhau.
+Các quy tắc nghiệp vụ và ranh giới vận hành do tôi chủ động xác định dựa trên bài toán đã phân tích. AI chỉ hỗ trợ diễn đạt và hoàn thiện cấu trúc prompt.
 
-## 4. Mình rút ra được gì
+1. **Chỉ định vai trò hẹp:** Xác định mô hình chỉ là "trợ lý hỗ trợ điều phối viên", không có quyền gửi tin nhắn hay trực tiếp điều xe.
 
-- Prompt chỉ là **lớp chặn đầu tiên**. Nếu làm thật thì ngưỡng pin < 5% phải được code kiểm tra lại, và người điều phối vẫn phải bấm duyệt. Không thể giao hết cho LLM.
-- AI làm rất nhanh, nhìn bài rất "chuẩn", nhưng chỗ dễ sai nhất lại là **số liệu** và **cách viết test**. Hai chỗ đó mình phải tự đọc lại kỹ.
-- Lần sau mình sẽ chạy thử sớm hơn thay vì đợi viết xong hết mới chạy. Phần lớn thời gian lab này là để xử lý lỗi môi trường (key, model, quota) chứ không phải lỗi prompt.
+2. **Viết ngưỡng rõ ràng, không mơ hồ:** Quy định pin < 5% (tức 0%–4.99%) để tránh mô hình hiểu nhầm 4.9% là "khoảng 5%".
+
+3. **Chặn áp lực xã hội:** Xác định quy tắc phải được áp dụng kể cả khi tài xế nói đang vội hoặc khách hàng là VIP.
+
+4. **Coi input là dữ liệu, không phải chỉ thị:** Nội dung tài xế cung cấp chỉ được xem là dữ liệu để phân tích, không được phép ghi đè hướng dẫn hệ thống nhằm hạn chế prompt injection.
+
+5. **Quy định định dạng output:** Yêu cầu dòng 1 là `[DRAFT_ONLY]`, sau đó là JSON có `needs_dispatcher_approval: true` để kết quả có thể được kiểm tra tự động và không bị hiểu nhầm là lệnh điều xe đã được thực hiện.
+
+6. **Cố định `temperature=0`:** Giảm sự thay đổi giữa các lần chạy để thuận tiện so sánh và đánh giá kết quả kiểm thử.
+
+## 4. Bài học
+
+* **Con người phải làm chủ bài toán:** Việc xác định vấn đề, phân tích nghiệp vụ, lựa chọn hướng giải quyết và xây dựng tiêu chí đánh giá cần xuất phát từ tư duy của con người. AI chỉ đóng vai trò hỗ trợ trong một số công việc kỹ thuật và trình bày.
+
+* **Không phụ thuộc hoàn toàn vào AI:** Đối với bài toán liên quan đến an toàn vận hành, ngưỡng pin < 5% cần được kiểm tra bằng code (rule validator) trước và sau LLM. System prompt chỉ là lớp phòng thủ ban đầu, không thể thay thế các cơ chế kiểm soát ở cấp hệ thống.
+
+* **Phải tự kiểm chứng kết quả:** Những nội dung AI hỗ trợ, từ cách diễn đạt, code đến kết quả kiểm thử, đều cần được con người xem xét lại. AI có thể tạo ra nội dung trông hợp lý nhưng vẫn chứa giả định sai hoặc tiêu chí chưa đầy đủ.
+
+* **AI là công cụ hỗ trợ, không phải người ra quyết định:** Trong bài tập này, tôi chủ động thực hiện các công việc chính và sử dụng AI để hỗ trợ những phần nhỏ như tra cứu cú pháp, chỉnh sửa code và xử lý lỗi. Tôi hiểu rằng trách nhiệm về tính chính xác, tính phù hợp của giải pháp và kết quả cuối cùng vẫn thuộc về con người.
+
+**Kết luận:** Qua bài tập, tôi nhận thấy AI có thể giúp tiết kiệm thời gian và hỗ trợ xử lý một số công việc kỹ thuật, nhưng không thể thay thế tư duy phân tích và khả năng ra quyết định của con người. Điều quan trọng không phải là để AI thực hiện càng nhiều công việc càng tốt, mà là biết sử dụng AI đúng lúc, kiểm soát kết quả và chịu trách nhiệm với những gì mình tạo ra.
