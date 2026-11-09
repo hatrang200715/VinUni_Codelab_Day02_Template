@@ -1,0 +1,1 @@
+AI đã giúp mình đưa ra ý tưởng ban đầu cho những vấn đề mình đã chọn. Mình chỉ sử dụng AI để sinh những ý tưởng ngẫu nhiên để làm mẫu và không sử dụng lại ví dụ AI đưa ra.
