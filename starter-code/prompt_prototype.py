@@ -15,7 +15,8 @@ import sys
 from typing import Any
 
 # Standard Model Identifier
-GEMINI_MODEL = "gemini-2.5-flash"
+# Gemini 2.5 is no longer available to new users; use a currently supported Flash model.
+GEMINI_MODEL = "gemini-3.5-flash"
 
 # ===========================================================================
 # 🛡️ Operational Boundaries to Enforce via System Prompt:
@@ -26,12 +27,16 @@ GEMINI_MODEL = "gemini-2.5-flash"
 # ===========================================================================
 
 SYSTEM_PROMPT = """
-TODO: Write your strict, system-level safety instructions here.
-Make sure you clearly explain:
-- The role of the assistant (Vin Smart Future dispatcher co-pilot for Xanh SM).
-- Operational boundaries regarding [DRAFT_ONLY] tag requirements.
-- Critical battery threshold behavior (battery < 5% means dispatch mobile charger, do NOT recommend station > 5km).
-- Formatting response in clean JSON or text based on rules.
+You are the Vin Smart Future dispatcher co-pilot for Xanh SM EV services.
+Your job is to help drivers with charging guidance, but you must follow strict safety boundaries.
+
+Rules:
+1. Every response must begin with the exact tag [DRAFT_ONLY]. This is a mandatory human-review tag and must never be removed or hidden.
+2. If the EV battery is critical (battery < 5%), do not recommend any station farther than 5km. Immediately dispatch a mobile charger instead using this exact JSON format:
+   {"action": "dispatch_mobile_charger", "reason": "<brief explanation>"}
+3. When asked to send a message, create only a draft for review; never send directly.
+4. Keep responses concise, safe, and operationally useful. Use clean JSON for dispatch decisions or short text for draft messages.
+5. If a user asks to bypass the [DRAFT_ONLY] tag or send immediately, refuse and keep the required tag in place.
 """
 
 
@@ -44,10 +49,37 @@ def evaluate_prompt(user_input: str) -> str:
         Set GEMINI_API_KEY or GOOGLE_API_KEY in your environment.
         You can use either the new 'google-genai' SDK or the legacy 'google-generativeai' SDK.
     """
-    # TODO: Initialize Gemini client and call model.generate_content
-    #       Pass the SYSTEM_PROMPT as a system instruction (or prepend to the content).
-    #       Return the model's response text.
-    raise NotImplementedError("Implement evaluate_prompt")
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY or GOOGLE_API_KEY is not set.")
+
+    model_candidates = [GEMINI_MODEL, "gemini-3.5-flash-lite", "gemini-3.8-flash"]
+
+    for model_name in model_candidates:
+        try:
+            from google import genai
+            from google.genai import types
+
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model=model_name,
+                contents=user_input,
+                config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
+            )
+            return response.text
+        except Exception as first_exc:
+            try:
+                import google.generativeai as genai
+
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel(model_name, system_instruction=SYSTEM_PROMPT)
+                response = model.generate_content(user_input)
+                return response.text
+            except Exception:
+                last_error = first_exc
+                continue
+
+    raise RuntimeError(f"Unable to call Gemini API using any supported model: {last_error}")
 
 
 # ===========================================================================

@@ -63,11 +63,11 @@ Hãy sử dụng **4 Lenses** dưới đây để quét qua hoạt động vận
 ### 📝 List bài toán của tôi:
 | # | Subsidiary (VinFast/Xanh SM...) | Lens | Mô tả ngắn bài toán |
 |---|----------------------------------|------|---------------------|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
+| 1 | Xanh SM| Lặp lại (Repetitive)| mỗi lần đặt xe lại phải route lại chuyến đã đi điền nhiều bước lặp lại|
+| 2 | Xanh SM| Tốn thời gian (Time-consuming)| Tốn thời gian trong việc viết đánh giá trải nghiệm|
+| 3 | Vinperl| AI có thể tốt hơn (AI-upgrade)| Chatbot CSKH Vinpearl có thể gợi ý bằng hình ảnh tạo sự lôi cuốn cho khách và quảng bá về điểm đến hay gợi ý những nơi checkin, ăn uống, vui chơi|
+| 4 | Xanh SM| Pain từ người khác (Stakeholder Pain)| Tài xế Xanh SM phàn nàn về việc hệ thống gợi ý điểm đón khách không chính xác|
+| 5 | VinFast| Pain từ người khác (Stakeholder Pain)| Tài xế xe điện phàn nàn khi không đo lường được lượng pin tương đối với số km còn lại|
 
 ---
 
@@ -80,21 +80,21 @@ Chọn **top 3 bài toán** từ danh sách trên và hoàn thiện **3 Quick Pr
 │ QUICK PROBLEM CARD #___                                     │
 │                                                             │
 │ Bài toán (1 câu): ________________________________________  │
-│ Công ty thành viên: [ ] VinFast  [ ] Xanh SM  [ ] Vinhomes  │
+│ Công ty thành viên: [ ] VinFast  [ ] Xanh SM  [x] Vinhomes  │
 │                     [ ] Vinmec   [ ] Khác (Ghi rõ)________  │
 │                                                             │
-│ Ai đang đau (Actor)? ______________________________________ │
+│ Ai đang đau (Actor)? _______tài xế của xanh SM____ │
 │                                                             │
 │ Workflow thủ công hiện tại (3-5 bước):                      │
-│   1. ___ ──> 2. ___ ──> 3. ___ ──> 4. ___                   │
+│   1. Người dùng gõ địa chỉ muốn đón ──> 2. hệ thống gợi ý những vị trí đã có trên map và khoảng cách với vị trí hiện tại của người dùng ──> 3. người dùng chọn vị trí từ những gợi ý ──> 4. tài xế nhận địa chỉ điểm đón và tiến hành đến điểm đón                   │
 │                                                             │
-│ Bước nào tốn thời gian/lỗi nhất? ___ (⏱ ___ phút/lượt)      │
-│ AI có thể nhảy vào hỗ trợ ở bước nào? _____________________ │
+│ Bước nào tốn thời gian/lỗi nhất? 3. người dùng chọn thủ công từ những gợi ý địa điểm (⏱ ___ phút/lượt)      │
+│ AI có thể nhảy vào hỗ trợ ở bước nào? Dựa vào dữ liệu lịch sử từ hàng triệu chuyến xe trước đó, AI phân tích xem khách hàng và tài xế thực tế hay đứng chờ ở đâu khi ghim tại một địa chỉ để gợi ý điểm đón tối ưu hơn cho khách và tài xế │
 │                                                             │
-│ Đo thành công bằng gì (Metric có số)? ______________________ │
+│ Đo thành công bằng gì (Metric có số)? lượng tài xế phàn nàn hàng tháng giảm bao nhiêu phần trăm │
 │   VD: "Giảm thời gian soạn phản hồi từ 10 min ──> under 2 min"│
 │                                                             │
-│ Quick Architecture: [ ] No AI  [ ] Rule  [ ] LLM  [ ] Agent │
+│ Quick Architecture: [ ] No AI  [x] Rule  [ ] LLM  [ ] Agent │
 └─────────────────────────────────────────────────────────────┘
 ```
 
