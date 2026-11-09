@@ -67,7 +67,7 @@ Hãy sử dụng **4 Lenses** dưới đây để quét qua hoạt động vận
 | 2 | Vinmec | Lặp lại| Phân loại phản hồi và khiếu nại của bệnh nhân: Nhân viên CSKH phải đọc thủ công các phản ánh về thời gian chờ, thái độ phục vụ, chi phí và quy trình khám. AI tự động phân loại, tóm tắt và gợi ý mức độ ưu tiên xử lý. |
 | 3 | Vinmec | Stakeholder Pain | Trợ lý AI hướng dẫn thủ tục khám bệnh: Bệnh nhân thường phải hỏi nhân viên về quy trình đăng ký, giấy tờ, thanh toán và bảo hiểm. AI chatbot trả lời theo quy trình đã được phê duyệt và hướng dẫn bệnh nhân đến đúng bộ phận. |
 | 4 | Vinhomes | Stakeholder Pain | AI hỗ trợ xử lý sự cố kỹ thuật: Khi nhận thông tin hỏng thang máy, điều hòa, điện nước hoặc thiết bị công cộng, nhân viên cần kiểm tra mô tả, xác định loại sự cố, đối chiếu lịch sử và phân công kỹ thuật viên. |
-| 5 | Vinhomes | Stakeholder Pain | Dự báo tình trạng quá tải thang máy: Ban quản lý phải theo dõi tình trạng sử dụng thang máy vào giờ cao điểm và xử lý các phản ánh về thời gian chờ. AI dự báo lưu lượng theo khung giờ và đề xuất phương án điều phối. |
+| 5 | Vinhomes | Stakeholder Pain | Dự báo tình trạng quá tải và điều phối thang máy: Ban quản lý phải theo dõi tình trạng sử dụng thang máy vào giờ cao điểm và xử lý các phản ánh về thời gian chờ. AI dự báo lưu lượng theo khung giờ và đề xuất phương án điều phối. |
 
 ---
 
@@ -75,28 +75,61 @@ Hãy sử dụng **4 Lenses** dưới đây để quét qua hoạt động vận
 
 Chọn **top 3 bài toán** từ danh sách trên và hoàn thiện **3 Quick Problem Cards** dưới đây (10 phút/card).
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ QUICK PROBLEM CARD #___                                     │
-│                                                             │
-│ Bài toán (1 câu): ________________________________________  │
-│ Công ty thành viên: [ ] VinFast  [ ] Xanh SM  [ ] Vinhomes  │
-│                     [ ] Vinmec   [ ] Khác (Ghi rõ)________  │
-│                                                             │
-│ Ai đang đau (Actor)? ______________________________________ │
-│                                                             │
-│ Workflow thủ công hiện tại (3-5 bước):                      │
-│   1. ___ ──> 2. ___ ──> 3. ___ ──> 4. ___                   │
-│                                                             │
-│ Bước nào tốn thời gian/lỗi nhất? ___ (⏱ ___ phút/lượt)      │
-│ AI có thể nhảy vào hỗ trợ ở bước nào? _____________________ │
-│                                                             │
-│ Đo thành công bằng gì (Metric có số)? ______________________ │
-│   VD: "Giảm thời gian soạn phản hồi từ 10 min ──> under 2 min"│
-│                                                             │
-│ Quick Architecture: [ ] No AI  [ ] Rule  [ ] LLM  [ ] Agent │
-└─────────────────────────────────────────────────────────────┘
-```
+Ba bài toán được chọn là **#1 — hỗ trợ đặt lịch khám**, **#2 — phân loại phản hồi/khiếu nại** và **#5 — dự báo, điều phối thang máy tại Vinhomes**. Đây là ba bài toán có actor rõ ràng, xuất hiện thường xuyên và có thể đo hiệu quả bằng thời gian xử lý, độ chính xác hoặc thời gian chờ.
+
+> **Lưu ý về số liệu:** Các mốc thời gian và tỷ lệ dưới đây là giả định phục vụ bài lab. Khi triển khai thực tế cần đo baseline từ log vận hành của Vinmec/Vinhomes trước khi cam kết KPI.
+
+### QUICK PROBLEM CARD #1 — Hỗ trợ xử lý yêu cầu đặt lịch khám
+
+| Hạng mục | Nội dung |
+|---|---|
+| **Bài toán (1 câu)** | Rút ngắn thời gian tiếp nhận yêu cầu đặt lịch bằng cách phân tích nhu cầu của bệnh nhân, gợi ý chuyên khoa phù hợp và hiển thị các khung giờ trống để nhân viên xác nhận. |
+| **Công ty thành viên** | **Vinmec** |
+| **Ai đang đau (Actor)?** | Nhân viên tổng đài/tiếp nhận phải đọc yêu cầu không theo mẫu; bệnh nhân phải chờ lâu hoặc bị chuyển nhầm chuyên khoa. |
+| **Workflow thủ công hiện tại** | 1. Bệnh nhân gọi điện/nhắn tin → 2. Nhân viên hỏi triệu chứng và nhu cầu → 3. Tra danh mục chuyên khoa/bác sĩ → 4. Kiểm tra lịch trống → 5. Xác nhận lịch với bệnh nhân. |
+| **Bước tốn thời gian/lỗi nhất** | Bước 2–3: diễn giải yêu cầu và chọn chuyên khoa, giả định **6 phút/lượt**; dễ sai khi mô tả triệu chứng mơ hồ. |
+| **AI hỗ trợ ở đâu?** | AI tóm tắt nhu cầu và đề xuất tối đa ba chuyên khoa kèm lý do; rule/API chỉ hiển thị lịch trống thật. Nhân viên phải xác nhận trước khi đặt lịch. |
+| **Metric có số** | Giảm thời gian xử lý trung vị từ giả định **10 phút xuống dưới 4 phút/yêu cầu**; đạt **≥90% top-3 accuracy** khi gợi ý chuyên khoa trên tập dữ liệu đã gán nhãn; **0 lịch được đặt tự động** khi chưa có xác nhận. |
+| **Quick Architecture** | [ ] No AI · [x] Rule · [x] LLM · [ ] Agent — **Hybrid Rule + LLM Feature** |
+| **Ranh giới ban đầu** | Không chẩn đoán bệnh, không tư vấn cấp cứu, không tự đặt/hủy lịch; trường hợp có dấu hiệu khẩn cấp hoặc độ tin cậy thấp phải chuyển nhân viên/y tế xử lý. |
+
+### QUICK PROBLEM CARD #2 — Phân loại phản hồi và khiếu nại bệnh nhân
+
+| Hạng mục | Nội dung |
+|---|---|
+| **Bài toán (1 câu)** | Tự động tóm tắt, phân loại và đề xuất mức độ ưu tiên cho phản hồi của bệnh nhân để nhân viên CSKH xử lý nhanh và nhất quán hơn. |
+| **Công ty thành viên** | **Vinmec** |
+| **Ai đang đau (Actor)?** | Nhân viên CSKH phải đọc từng phản hồi dài; trưởng nhóm khó nhận biết sớm khiếu nại nghiêm trọng; bệnh nhân chờ phản hồi lâu. |
+| **Workflow thủ công hiện tại** | 1. Nhận phản hồi từ app/email/tổng đài → 2. Đọc và tóm tắt → 3. Chọn nhóm vấn đề → 4. Xác định mức ưu tiên → 5. Chuyển bộ phận phụ trách và theo dõi. |
+| **Bước tốn thời gian/lỗi nhất** | Bước 2–4: đọc, phân loại và ưu tiên, giả định **8 phút/phản hồi**; cách phân loại có thể khác nhau giữa các nhân viên. |
+| **AI hỗ trợ ở đâu?** | LLM tạo tóm tắt có cấu trúc, đề xuất category và priority; rule bắt từ khóa an toàn/pháp lý để buộc chuyển cấp. Nhân viên duyệt trước khi route. |
+| **Metric có số** | **≥90% macro-F1** trên bộ nhãn đã thống nhất; **≥95% recall** với nhóm khẩn cấp; giảm thời gian phân loại trung vị từ giả định **8 phút xuống dưới 2 phút**; **100% ticket khẩn cấp có human review**. |
+| **Quick Architecture** | [ ] No AI · [x] Rule · [x] LLM · [ ] Agent — **Hybrid Rule + LLM Feature** |
+| **Ranh giới ban đầu** | Không tự trả lời khiếu nại y khoa/pháp lý, không thay đổi hồ sơ bệnh án, không tự đóng ticket; dữ liệu bệnh nhân phải được phân quyền và bảo vệ. |
+
+### QUICK PROBLEM CARD #3 — Dự báo và điều phối thang máy Vinhomes
+
+| Hạng mục | Nội dung |
+|---|---|
+| **Bài toán (1 câu)** | Dự báo nhu cầu sử dụng và điều phối cụm thang máy theo thời gian thực nhằm giảm tình trạng quá tải và thời gian chờ vào giờ cao điểm. |
+| **Công ty thành viên** | **Vinhomes** |
+| **Ai đang đau (Actor)?** | Cư dân phải chờ lâu và đi thang đông vào giờ cao điểm; ban quản lý nhận nhiều phản ánh nhưng khó xác định trước thời điểm và tầng sẽ quá tải. |
+| **Workflow hiện tại** | 1. Hệ thống nhận nút gọi thang → 2. Bộ điều khiển chọn cabin theo rule cố định → 3. Cabin di chuyển và đón khách → 4. Ban quản lý theo dõi camera/phản ánh → 5. Chỉ điều chỉnh chế độ vận hành sau khi đã xuất hiện ùn tắc. |
+| **Bước tốn thời gian/lỗi nhất** | Bước 2 và 4–5: hệ thống phản ứng sau khi có yêu cầu, chưa dự báo tốt luồng người theo tầng/khung giờ; giả định thời gian chờ giờ cao điểm có thể đạt **4–6 phút/lượt**. |
+| **AI hỗ trợ ở đâu?** | Mô hình dự báo nhu cầu 5–15 phút tiếp theo từ lịch sử nút gọi, tầng, thời gian và sự kiện; thuật toán tối ưu đề xuất phân vùng cabin, vị trí chờ hoặc chế độ ưu tiên. Bộ điều khiển an toàn xác thực trước khi áp dụng. |
+| **Metric có số** | Giảm thời gian chờ trung vị giờ cao điểm từ giả định **4 phút xuống dưới 2,5 phút**; giảm **P95 ít nhất 25%**; giảm số lượt cabin chạy rỗng **≥15%**; không làm tăng mức tiêu thụ điện/chuyến quá **5%**; **0 vi phạm quy tắc an toàn**. |
+| **Quick Architecture** | [ ] No AI · [x] Rule · [ ] LLM · [ ] Agent — **Mô hình dự báo ML + thuật toán tối ưu + safety rules**, không dùng LLM trong vòng điều khiển. |
+| **Ranh giới ban đầu** | AI chỉ đề xuất chiến lược điều phối trong phạm vi được phê duyệt; không được vô hiệu hóa bộ điều khiển an toàn, ưu tiên cứu hỏa/cứu hộ, giới hạn tải, bảo trì hoặc quyền tiếp cận tầng. Khi dữ liệu lỗi hoặc độ tin cậy thấp, hệ thống quay về thuật toán điều phối chuẩn. |
+
+### Xếp hạng nhanh để chọn bài Deep-Dive
+
+| Card | Giá trị vận hành | Khả thi dữ liệu | Rủi ro nếu AI sai | Đề xuất |
+|---|---|---|---|---|
+| #1 — Đặt lịch khám | Cao | Trung bình | Cao vì có thể bị hiểu là tư vấn y khoa | **NOT YET** — cần taxonomy chuyên khoa và quy trình chuyển cấp |
+| #2 — Phân loại khiếu nại | Cao | Cao nếu đã có ticket lịch sử | Trung bình, có thể kiểm soát bằng human review | **Ưu tiên Deep-Dive** |
+| #3 — Điều phối thang máy | Cao | Trung bình, cần log nút gọi/cabin theo thời gian | Rất cao vì tác động tới thiết bị vật lý | **NOT YET** — mô phỏng offline trước, bắt buộc safety controller và fallback |
+
+**Lựa chọn đề xuất cho Phase 3:** Card #2 — *Phân loại phản hồi và khiếu nại bệnh nhân*. Bài toán này có đầu vào/đầu ra rõ, có khả năng tận dụng ticket lịch sử để gán nhãn, không cần cho AI quyền thực hiện hành động vật lý và dễ thiết kế Human-in-the-loop.
 
 > [!TIP]
 > **🤖 AI Prompts — Stress-Test thẻ bài toán:**
