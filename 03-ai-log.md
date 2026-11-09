@@ -1,0 +1,11 @@
+# Nhật ký sử dụng AI — Lab 02: AI Product Scoping
+
+Tôi chọn ghi lại ba tương tác có ảnh hưởng trực tiếp đến bài làm Xanh SM. Bản phản ánh này được AI hỗ trợ soạn từ các trao đổi thực tế.
+
+| Tương tác / Yêu cầu của tôi | AI giúp gì? | AI sai hoặc còn hạn chế ở đâu? | Tôi điều chỉnh yêu cầu / Bài học |
+|---|---|---|---|
+| **1. Tìm pain point có nguồn:** Mở rộng prompt từ 5 ý tưởng thành 8–10 vấn đề thực tế; trình bày theo lens, mô tả và reference. | Tổng hợp 10 vấn đề từ website, báo chí và diễn đàn; phân biệt tài liệu đối tác với phản ánh cá nhân. Phát hiện hãng đã có tính năng gợi ý lộ trình và theo dõi phiên sạc trên V-App. | Nguồn công khai có thể cũ; phản ánh cá nhân không cho biết mức độ phổ biến. Chưa có log để tính tổn thất toàn hệ thống. | Tôi yêu cầu tìm vấn đề thực tế kèm reference thay vì chỉ brainstorm. Không coi chức năng đã có là còn thiếu, hoặc dùng tổn thất ước tính như thống kê thực tế. |
+| **2. Phản biện Quick Cards:** Kiểm tra logic, metric và lý do chọn Rule, LLM hoặc Agent; đối chiếu worked example. | Đề xuất Rule cho việc giữ danh sách khách, kiểm tra phân công xe cho bài đón xa, và mô hình năng lượng trước khi xét ML cho bài pin. | Ban đầu AI đánh giá thời gian đón 10–20 phút là thiếu bằng chứng, chưa biết đây là trải nghiệm cá nhân của tôi. | Tôi bổ sung bối cảnh và yêu cầu so với ví dụ. AI điều chỉnh: trải nghiệm cá nhân dùng được cho SCAN khi ghi rõ nguồn. Tôi cần phân biệt quan sát, baseline đã đo và mục tiêu đề xuất; chọn Agent phải giải thích được vòng lặp cụ thể. |
+| **3. Hiểu prompt prototype:** Đọc và giải thích trực tiếp `starter-code/prompt_prototype.py`. | Chỉ ra hàm gọi Gemini chưa triển khai; kiểm tra tag chỉ tìm chuỗi ở bất kỳ vị trí nào; kiểm tra cứu hộ có thể bỏ lọt câu trả lời vừa nhắc cứu hộ vừa hướng dẫn sai. | Phân tích mã chưa chứng minh model tuân thủ ranh giới. Kiểm tra từ khóa cũng chưa đủ để xác nhận hành vi đúng. | Tôi yêu cầu giải thích dựa trên file thực tế. Bài học là cần kiểm tra cấu trúc output và hành vi vi phạm. Đây là các điểm cần sửa, chưa phải kết quả đã triển khai hoặc chạy Gemini thành công. |
+
+Qua các trao đổi này, điều hữu ích nhất là dùng AI để đặt lại câu hỏi và kiểm tra giả định. Tôi vẫn cần xác nhận dữ liệu vận hành, lý do chọn kiến trúc và kết quả thử nghiệm trước khi đưa ra kết luận cuối cùng.
